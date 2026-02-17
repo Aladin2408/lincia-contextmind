@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LincIA ContextMind | Adaptive Context Intelligence (ACI)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-app: #F3F4F6;
+            --surface: #FFFFFF;
+            --border: #E5E7EB;
+            --uvm-red: #C3151C;
+            --uvm-red-hover: #991b1b;
+            --text-main: #111827;
+            --text-sec: #6B7280;
+            --shadow-float: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-app);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 98vw;
+            height: 96vh;
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow-float);
+            display: grid;
+            grid-template-columns: 320px 1fr 400px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        /* --- 1. PANEL FUENTE --- */
+        .panel-source {
+            background: #F9FAFB;
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .header {
+            font-weight: 800; font-size: 1.1rem; color: var(--text-main);
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+        }
+        .header i { color: var(--uvm-red); }
+
+        .input-box {
+            flex-grow: 1; border: 1px solid var(--border); background: white;
+            border-radius: 12px; padding: 15px; display: flex; flex-direction: column;
+            transition: 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-box:focus-within { border-color: var(--uvm-red); }
+
+        textarea {
+            width: 100%; height: 100%; border: none; outline: none; resize: none;
+            font-size: 0.85rem; color: var(--text-main); line-height: 1.5; background: transparent;
+        }
+
+        .btn-analyze {
+            background: var(--uvm-red); color: white; border: none; padding: 14px;
+            border-radius: 8px; font-weight: 600; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: 0.2s; box-shadow: 0 4px 6px rgba(195, 21, 28, 0.2);
+        }
+        .btn-analyze:hover { background: var(--uvm-red-hover); transform: translateY(-1px); }
+        
+        .loader { display: none; animation: spin 1s linear infinite; }
+        .btn-analyze.loading .loader { display: block; }
+        .btn-analyze.loading span, .btn-analyze.loading i.static { display: none; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- 2. CEREBRO IA --- */
+        .panel-core {
+            padding: 30px; display: flex; flex-direction: column; gap: 20px;
+            overflow-y: auto; background: white; position: relative;
+        }
+
+        .label {
+            font-size: 0.75rem; font-weight: 700; color: var(--text-sec);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .insight-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-bottom: 10px;
+        }
+        .insight-tag {
+            background: #F3F4F6; border-radius: 8px; padding: 10px;
+            font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
+        }
+        .insight-tag.positive { background: #ECFDF5; color: #047857; }
+        .insight-tag.negative { background: #FEF2F2; color: #B91C1C; }
+        .insight-tag.neutral { background: #EFF6FF; color: #1D4ED8; }
+
+        .routes-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .route-card {
+            border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+            cursor: pointer; transition: all 0.2s; background: white;
+            display: flex; align-items: flex-start; gap: 15px;
+        }
+        .route-card:hover {
+            border-color: var(--uvm-red); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+        .route-icon {
+            width: 32px; height: 32px; background: #FEF2F2; color: var(--uvm-red);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .route-info h3 { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600; }
+        .route-info p { margin: 0; font-size: 0.82rem; color: var(--text-sec); line-height: 1.4; }
+
+        .manual-box {
+            margin-top: auto; border-top: 1px solid var(--border); padding-top: 20px;
+        }
+        .manual-input-wrapper {
+            display: flex; gap: 8px; background: #F9FAFB; padding: 8px;
+            border-radius: 8px; border: 1px solid var(--border);
+        }
+        .manual-input {
+            flex-grow: 1; border: none; background: transparent; outline: none; font-size: 0.9rem;
+        }
+        .btn-send {
+            background: white; border: 1px solid var(--border); width: 32px; height: 32px;
+            border-radius: 6px; cursor: pointer; color: var(--text-main); display: flex;
+            align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-send:hover { background: var(--uvm-red); color: white; border-color: var(--uvm-red); }
+
+        .empty-state {
+            text-align: center; color: #9CA3AF; margin-top: 60px;
+        }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.3; }
+
+        /* --- 3. WIDGET --- */
+        .panel-widget {
+            border-left: 1px solid var(--border); background: #F8FAFC;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .widget-header {
+            padding: 16px; background: white; border-bottom: 1px solid var(--border);
+            font-size: 0.8rem; font-weight: 700; color: var(--text-sec);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #chat-widget { width: 100%; height: 100%; }
+
+        /* Toast & Feedback */
+        .toast {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #1F2937; color: white; padding: 12px 30px; border-radius: 50px;
+            font-weight: 600; display: flex; align-items: center; gap: 10px;
+            transition: 0.4s; opacity: 0; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .toast.visible { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        .arrow-overlay {
+            position: absolute; top: 50%; left: -20px;
+            background: var(--uvm-red); color: white; width: 40px; height: 40px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(195, 21, 28, 0.4); z-index: 100;
+            opacity: 0; transform: translateX(-20px); transition: 0.4s; pointer-events: none;
+        }
+        .arrow-overlay.active { opacity: 1; transform: translateX(0); }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- INGESTA -->
+        <div class="panel-source">
+            <div class="header">
+                <i class="fas fa-brain"></i>
+                <span>LINCIA CONTEXTMIND</span>
+            </div>
+            
+            <div class="input-box">
+                <textarea id="chatInput" placeholder="Pega el historial de chat aquí..."></textarea>
+            </div>
+
+            <button id="btnAnalyze" class="btn-analyze" onclick="analyzeChat()">
+                <i class="fas fa-search static"></i>
+                <i class="fas fa-circle-notch loader"></i>
+                <span>ANALIZAR CONTEXTO IA</span>
+            </button>
+        </div>
+
+        <!-- CEREBRO IA -->
+        <div class="panel-core">
+            <div class="label">
+                <span>Adaptive Context Intelligence (ACI)</span>
+                <i class="fas fa-shield-alt" style="color:#C3151C" title="Modo Integridad Activo"></i>
+            </div>
+
+            <div id="resultsArea">
+                <div class="empty-state">
+                    <i class="fas fa-robot"></i>
+                    <p>Analiza un chat para ver rutas inteligentes basadas en la realidad de la conversación.</p>
+                </div>
+            </div>
+
+            <div class="manual-box">
+                <div class="label" style="margin-bottom:8px;">Petición Específica</div>
+                <div class="manual-input-wrapper">
+                    <input type="text" id="manualInput" class="manual-input" placeholder="Ej: Argumenta calidad vs costo...">
+                    <button class="btn-send" onclick="executeManual()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WIDGET -->
+        <div class="panel-widget">
+            <div class="widget-header">
+                <span><i class="fas fa-circle" style="color:#10B981; font-size:8px; margin-right:5px;"></i> LINCIA SISTEMA ACTIVO</span>
+            </div>
+            
+            <div id="chat-widget" data-project-id="35"></div>
+            <script async src="https://app.genaitechstudio.com/widget/widget.js"></script>
+
+            <div class="arrow-overlay" id="arrowInd">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle" style="color:#34D399;"></i>
+        <span>Copiado. Pega en LincIA.</span>
+    </div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRpoJVYDyfAmaoYeSvqb0s0yxyjeAwUNs",
+  authDomain: "lincia-backend.firebaseapp.com",
+  projectId: "lincia-backend",
+  storageBucket: "lincia-backend.firebasestorage.app",
+  messagingSenderId: "797934836606",
+  appId: "1:797934836606:web:3333b65985864160e9312f",
+  measurementId: "G-BE9GGQ62TX"
+};
+
+const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  console.log("Firebase conectado");
+</script>
+
+
+    <script>
+        const apiKey = ""; 
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        let currentStrategies = [];
+
+        async function fetchWithRetry(url, payload, retries = 5, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) return await response.json();
+                    if (response.status === 429) {
+                         await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                         continue;
+                    }
+                    throw new Error(`API status: ${response.status}`);
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                    await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                }
+            }
+        }
+
+        async function analyzeChat() {
+            const chat = document.getElementById('chatInput').value.trim();
+            if (chat.length < 5) {
+                showToast("⚠️ Pega un historial de chat válido.", true);
+                return;
+            }
+
+            const btn = document.getElementById('btnAnalyze');
+            btn.classList.add('loading');
+            
+            const systemPrompt = `Eres un auditor de ventas experto para UVM. 
+            REGLA DE ORO: NO puedes asegurar, prometer ni inventar beneficios, becas adicionales o descuentos que no aparezcan confirmados en el historial de chat. 
+            Si el cliente pide descuento y no hay uno disponible en el chat, tu estrategia debe ser "Venta de Valor" o "Explicación de Inversión", NUNCA ofrecer algo extra.
+            Genera 3 rutas de respuesta en JSON.`;
+
+            const userQuery = `Analiza este chat y devuelve un JSON con 'sentiment', 'intent' y 'strategies'. NO INVENTES BECAS. CHAT: ${chat}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            sentiment: { type: "string" },
+                            intent: { type: "string" },
+                            strategies: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        title: { type: "string" },
+                                        desc: { type: "string" },
+                                        icon: { type: "string" },
+                                        instruction: { type: "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const data = await fetchWithRetry(API_URL, payload);
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!text) throw new Error("No hay respuesta de la IA");
+                
+                const analysis = JSON.parse(text);
+                renderResults(analysis);
+
+            } catch (error) {
+                console.error("Error detallado:", error);
+                showToast("Error de análisis. Verifica el contenido o la API.", true);
+            } finally {
+                btn.classList.remove('loading');
+            }
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('resultsArea');
+            if (!data.strategies) return;
+            
+            let colorClass = 'neutral';
+            if (data.sentiment?.toLowerCase().includes('pos')) colorClass = 'positive';
+            if (data.sentiment?.toLowerCase().includes('neg')) colorClass = 'negative';
+            
+            currentStrategies = [];
+
+            let html = `
+                <div class="insight-grid">
+                    <div class="insight-tag ${colorClass}">
+                        <i class="fas fa-brain"></i> ${data.sentiment || 'Analizado'}
+                    </div>
+                    <div class="insight-tag neutral">
+                        <i class="fas fa-bullseye"></i> ${data.intent || 'Detección'}
+                    </div>
+                </div>
+                <div class="routes-list">
+            `;
+
+            data.strategies.forEach((s, index) => {
+                currentStrategies.push(s.instruction);
+                html += `
+                    <div class="route-card" onclick='handleStrategyClick(${index})'>
+                        <div class="route-icon"><i class="${s.icon || 'fas fa-bolt'}"></i></div>
+                        <div class="route-info">
+                            <h3>${s.title}</h3>
+                            <p>${s.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function handleStrategyClick(index) {
+            if (currentStrategies[index]) {
+                prepareClipboard(currentStrategies[index]);
+            }
+        }
+
+        function executeManual() {
+            const val = document.getElementById('manualInput').value;
+            if(!val) return;
+            prepareClipboard(val);
+        }
+
+        function prepareClipboard(instruction) {
+            const chat = document.getElementById('chatInput').value;
+
+            const payload = `
+Contexto de la conversación: "${chat}"
+Misión: Escribir la mejor respuesta profesional UVM.
+Instrucción de ruta: ${instruction}
+
+Reglas CRÍTICAS:
+1. NO prometas becas adicionales, descuentos o beneficios no confirmados en el chat.
+2. Si la instrucción sugiere algo no existente, ignora ese punto y enfócate en los beneficios académicos reales.
+3. No saludes si ya se saludó. No menciones "según mi análisis".
+Respuesta:
+            `;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = payload.trim();
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast("Ruta copiada (Modo Integridad Activo).");
+                triggerVisualFeedback();
+            } catch (err) {
+                showToast("Error al copiar.", true);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.querySelector('span').innerText = msg;
+            t.style.background = isError ? '#EF4444' : '#1F2937';
+            t.classList.add('visible');
+            setTimeout(() => t.classList.remove('visible'), 3000);
+        }
+
+        function triggerVisualFeedback() {
+            const arrow = document.getElementById('arrowInd');
+            arrow.classList.add('active');
+            setTimeout(() => arrow.classList.remove('active'), 1500);
+        }
+
+    </script>
+</body>
+</html>
