@@ -284,7 +284,8 @@
         // 4. Configuración de Gemini (¡RECUERDA PONER TU API KEY AQUÍ!)
         const geminiApiKey = "AIzaSyDZKQCDAYP9cWAq6Y7PagQKGXpyzBu_1t4"; // <--- PEGA TU CLAVE AIzaSy... AQUÍ
         // Usamos gemini-1.5-flash que es el modelo rápido y estable actual
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+        // CAMBIO OBLIGATORIO: Usa 1.5-flash
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
 
         let currentStrategies = [];
 
@@ -369,7 +370,7 @@
         };
 
         // Función de reintento para la API
-        async function fetchWithRetry(url, payload, retries = 3, delay = 1000) {
+        async function fetchWithRetry(url, payload, retries = 1, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, {
@@ -482,6 +483,7 @@ Respuesta:
     </script>
 </body>
 </html>
+
 
 
 
